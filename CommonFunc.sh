@@ -204,10 +204,14 @@ function Usage
     echo "  Github: https://github.com/cyng93/scripts/"
     echo ""
     echo "  To use it, append following lines in top of your scripts:"
-    echo "  \`\`\`"
-    echo "  [ -f \"/tmp/.CommonFunc.sh\" ] && true \\"
-    echo "      || curl -s $url"
-    echo "  \`\`\`"
+    echo '  ```'
+    echo '  url="https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh"'
+    echo '  if [ ! $(cat "/tmp/.CommonFunc.sh" > /dev/null 2>&1) ]; then'
+    echo '      curl -s $url > /tmp/.CommonFunc.sh && true \'
+    echo '          || { echo "[ERROR] Fail to download CommonFunc. Aborting."; exit 1; }'
+    echo "  fi"
+    echo "  source /tmp/.CommonFunc.sh"
+    echo '  ```'
     echo ""
 
     [ "$1" ] && exit $1 || true
@@ -216,13 +220,13 @@ function Usage
 
 # ----------- ENTRY POINT
 case $1 in
-    "-h" | "--help")
+    "-h" | "--help" )
         Usage 0
         ;;
-    "-l" | "--list-all")
+    "-l" | "--list-all" )
         ListFunc
         ;;
-    "-v" )
+    "-v" | "--version" )
         grep "\$Revision:" $0 | head -n 1 | awk '{print "version", $4}'
         ;;
 esac

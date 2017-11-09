@@ -6,8 +6,11 @@ Most of the scripts are based on sh, so it "should" works on various platform.
 ## How to use it
 - Append following lines in your scripts
 ```sh
-[ -f "/tmp/.Common.sh" ] && true \
-    || curl -s https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh > /tmp/.CommonFunc.sh
+url="https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh"
+if [ ! $(cat "/tmp/.CommonFunc.sh" > /dev/null 2>&1) ]; then
+    curl -s $url > /tmp/.CommonFunc.sh && true \
+        || { echo "[ERROR] Fail to download CommonFunc. Aborting."; exit 1; }
+fi
 source /tmp/.CommonFunc.sh
 ```
 
