@@ -219,14 +219,19 @@ function Usage
 
 
 # ----------- ENTRY POINT
-case $1 in
-    "-h" | "--help" )
-        Usage 0
-        ;;
-    "-l" | "--list-all" )
-        ListFunc
-        ;;
-    "-v" | "--version" )
-        grep "\$Revision:" $0 | head -n 1 | awk '{print "version", $4}'
-        ;;
-esac
+if [ "CommonFunc.sh" = $(basename $0) ]; then
+    case $1 in
+        "-h" | "--help" )
+            Usage 0
+            ;;
+        "-l" | "--list-all" )
+            ListFunc
+            ;;
+        "-v" | "--version" )
+            grep "\$Revision:" $0 | head -n 1 | awk '{print "version", $4}'
+            ;;
+        * )
+            Usage 1
+            ;;
+    esac
+fi
