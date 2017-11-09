@@ -30,6 +30,7 @@ DEFAULT_MSG_LEVEL_STR="INFO"
 # ---------- FUNCTIONS
 
 #
+#$Func
 # PrintMsg ( _msg, _msg_lvl=DEFAULT_MSG_LEVEL )
 #
 #   Print out only msg with `_msg_lvl` < `LOG_LEVEL`.
@@ -81,7 +82,8 @@ function PrintMsg
 }
 
 
-# MissingArg ( _func, _arg, _lineno )
+#$Func
+# MissingArg ( _func, _arg )
 #
 #   Print missing argument message, then abort the program.
 #
@@ -99,7 +101,9 @@ function MissingArg
 }
 
 
+#$Func
 # CheckPathExist ( _path, _type )
+#
 #   return 1 if `_path` exist as file type `_type`, 0 otherwise
 #
 function CheckPathExist
@@ -127,7 +131,8 @@ function CheckPathExist
 }
 
 
-# CheckFileExist
+#$Func
+# CheckFileExist ( _file )
 #   return 1 if `_file` exist, 0 otherwise
 #
 function CheckFileExist
@@ -144,8 +149,9 @@ function CheckFileExist
 }
 
 
-# CheckDirExist
-#   return 1 if `_file` exist, 0 otherwise
+#$Func
+# CheckDirExist ( _dir )
+#   return 1 if `_dir` exist, 0 otherwise
 #
 function CheckDirExist
 {
@@ -159,3 +165,64 @@ function CheckDirExist
 
     return $_ret
 }
+
+
+#$Func
+# ListFunc ()
+#
+#   List out all func-proto in the next line to "$Func"
+#
+function ListFunc
+{
+    local _prog=$(basename $0)
+    echo ""
+    echo "$_prog's functions:"
+    echo ""
+
+    # grep "\$FUNC" $0 | head -n -1 | awk '{$1=" -"}1'      # $FUNC is sameline
+    cat $0 | awk '/^#\$Func/{getline; print " -", substr($0,3)}'
+    echo ""
+}
+
+
+# ----------- DEDICATED FUNC
+function Usage
+{
+    local _prog=$(basename $0)
+    local url="https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh"
+
+    echo ""
+    echo " cyng93's CommonFunc.sh"
+    echo " ======================"
+    echo ""
+    echo "  Usage: $_prog [option]..."
+    echo "  option:"
+    echo "      --help      : print this usage"
+    echo "      --version   : print current version"
+    echo "      --list-all  : print all available functions"
+    echo ""
+    echo "  Github: https://github.com/cyng93/scripts/"
+    echo ""
+    echo "  To use it, append following lines in top of your scripts:"
+    echo "  \`\`\`"
+    echo "  [ -f \"/tmp/.CommonFunc.sh\" ] && true \\"
+    echo "      || curl -s $url"
+    echo "  \`\`\`"
+    echo ""
+
+    [ "$1" ] && exit $1 || true
+}
+
+
+# ----------- ENTRY POINT
+case $1 in
+    "-h" | "--help")
+        Usage 0
+        ;;
+    "-l" | "--list-all")
+        ListFunc
+        ;;
+    "-v" )
+        grep "\$Revision:" $0 | head -n 1 | awk '{print "version", $4}'
+        ;;
+esac
