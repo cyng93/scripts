@@ -23,7 +23,7 @@ if [ ! "$comm_func" ]; then
     curl -s $url > /tmp/.CommonFunc.sh && true \
         || { echo "[ERROR] Fail to download CommonFunc. Aborting."; exit 1; }
 fi
-source /tmp/.CommonFunc.sh
+. /tmp/.CommonFunc.sh
 
 
 # ---------- DEFAULT ARGS
@@ -42,20 +42,20 @@ KERNEL_IMG=""   # KERNEL_IMG default value are decide after args parsing
 #   Create loop device for `_img` if such loop device not yet present,
 #   then mount second partition of loop_device on `_mnt_dir`
 #
-function MountImage
+MountImage()
 {
     local _img
     local _mnt_dir
     local _loop_device
 
     # Checking
-    [ "$1" ] && _img=$1     || MissingArg "${FUNCNAME[0]}:$LINENO" "_img"
-    [ "$2" ] && _mnt_dir=$2 || MissingArg "${FUNCNAME[0]}:$LINENO" "_mnt_dir"
+    [ "$1" ] && _img=$1     || MissingArg "MountImage:$LINENO" "_img"
+    [ "$2" ] && _mnt_dir=$2 || MissingArg "MountImage:$LINENO" "_mnt_dir"
 
     CheckFileExist "$_img" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate \`$_img\`" "E"
+        || PrintMsg "MountImage:$LINENO - Couldn't locate \`$_img\`" "E"
     CheckDirExist "$_mnt_dir" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate \`$_mnt_dir\`" "E"
+        || PrintMsg "MountImage:$LINENO - Couldn't locate \`$_mnt_dir\`" "E"
 
 
     # 1. Create loop device for image if not loop device not yet present
@@ -66,7 +66,7 @@ function MountImage
         _loop_device=$(sudo losetup -f --show -P $_img)
         [ "$_loop_device" ] \
             && PrintMsg "Created loop device \`$_loop_device\` for \`$_img\`" \
-            || PrintMsg "${FUNCNAME[0]}:$LINENO Fail to create loop device" "E"
+            || PrintMsg "MountImage:$LINENO Fail to create loop device" "E"
     fi
 
 
@@ -79,7 +79,7 @@ function MountImage
     PrintMsg "_loop_device: $_loop_device" "D"
     sudo mount "$_loop_device"p2 $_mnt_dir > /dev/null 2>&1 \
         && PrintMsg "Mounted ${_loop_device}p2 to $_mnt_dir" "D" \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO Fail to mount loop device" "E"
+        || PrintMsg "MountImage:$LINENO Fail to mount loop device" "E"
 
 }
 
@@ -87,15 +87,15 @@ function MountImage
 #
 # UmountImage ( $_dir )
 #
-function UmountImage
+UmountImage()
 {
     local _dir
-    [ "$1" ] && _dir=$1 || MissingArg "${FUNCNAME[0]}:$LINENO" "_dir"
+    [ "$1" ] && _dir=$1 || MissingArg "UnmountImage:$LINENO" "_dir"
 
     # workaround with targeted device busy when trying to unmount
     sync && sleep 2 && sudo umount $_dir > /dev/null 2>&1 \
         && PrintMsg "$_dir unmounted!" "D" \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Fail to unmount $_mnt_dir" "E"
+        || PrintMsg "UnmountImage:$LINENO - Fail to unmount $_mnt_dir" "E"
 }
 
 
@@ -109,36 +109,36 @@ function UmountImage
 #   Our idea is to prepare those files and set them up in proper place before
 #   we start the emulation.
 #
-function SetupEnv
+SetupEnv()
 {
     local _mode
     local _img
     local _res_dir
     local _mnt_dir
 
-    [ "$1" ] && _mode=$1    || MissingArg "${FUNCNAME[0]}:$LINENO" "_mode"
+    [ "$1" ] && _mode=$1    || MissingArg "SetupEnv:$LINENO" "_mode"
     [ "$2" ] && _img=$2     || _img=$TARGET_IMG
     [ "$3" ] && _res_dir=$3 || _res_dir=$RES_DIR
     [ "$4" ] && _mnt_dir=$4 || _mnt_dir=$MNT_DIR
 
     CheckFileExist "$_img" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_img" "E"
+        || PrintMsg "SetupEnv:$LINENO - Couldn't locate $_img" "E"
     CheckDirExist "$_res_dir" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_res_dir" "E"
+        || PrintMsg "SetupEnv:$LINENO - Couldn't locate $_res_dir" "E"
     CheckDirExist "$_mnt_dir" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_mnt_dir" "E"
+        || PrintMsg "SetupEnv:$LINENO - Couldn't locate $_mnt_dir" "E"
 
     MountImage "$_img" "$_mnt_dir"
 
     sudo cp $_res_dir/ld.so.preload-$_mode $_mnt_dir/etc/ld.so.preload \
         && PrintMsg "$_mode's ld.so.preload copied" "D" \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Fail to copy ld.so.preload" "E"
+        || PrintMsg "SetupEnv:$LINENO - Fail to copy ld.so.preload" "E"
     sudo cp $_res_dir/fstab-$_mode $_mnt_dir/etc/fstab \
         && PrintMsg "$_mode's fstab copied" "D" \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Fail to copy fstab" "E"
+        || PrintMsg "SetupEnv:$LINENO - Fail to copy fstab" "E"
     sudo cp $_res_dir/dhcpcd.conf-$_mode $_mnt_dir/etc/dhcpcd.conf \
         && PrintMsg "$_mode's dhcpcd.conf copied" "D" \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Fail to copy dhcpcd.conf" "E"
+        || PrintMsg "SetupEnv:$LINENO - Fail to copy dhcpcd.conf" "E"
 
     UmountImage "$_mnt_dir"
 }
@@ -153,23 +153,23 @@ function SetupEnv
 #
 #   where needed resources file like /etc/fstab... can be found in `_res_dir`
 #
-function StartVersatilepb
+StartVersatilepb()
 {
     local _img
     local _kernel
     local _res_dir
 
     # 0. Checking
-    [ "$1" ] && _img=$1     || MissingArg "${FUNCNAME[0]}:$LINENO" "_img"
-    [ "$2" ] && _kernel=$2  || MissingArg "${FUNCNAME[0]}:$LINENO" "_kernel"
-    [ "$3" ] && _res_dir=$3 || MissingArg "${FUNCNAME[0]}:$LINENO" "_res_dir"
+    [ "$1" ] && _img=$1     || MissingArg "StartVersatilepb:$LINENO" "_img"
+    [ "$2" ] && _kernel=$2  || MissingArg "StartVersatilepb:$LINENO" "_kernel"
+    [ "$3" ] && _res_dir=$3 || MissingArg "StartVersatilepb:$LINENO" "_res_dir"
 
     CheckFileExist "$_img" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_img" "E"
+        || PrintMsg "StartVersatilepb:$LINENO - Couldn't locate $_img" "E"
     CheckFileExist "$_kernel" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_kernel" "E"
+        || PrintMsg "StartVersatilepb:$LINENO - Couldn't locate $_kernel" "E"
     CheckDirExist "$_res_dir" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_res_dir" "E"
+        || PrintMsg "StartVersatilepb:$LINENO - Couldn't locate $_res_dir" "E"
 
     # 1. Setup Env
     SetupEnv "versatilepb" "$_img" "$_res_dir"
@@ -199,23 +199,23 @@ function StartVersatilepb
 #
 #   where needed resources file like /etc/fstab... can be found in `_res_dir`
 #
-function StartRaspi2
+StartRaspi2()
 {
     local _img
     local _kernel
     local _res_dir
 
     # 0. Checking
-    [ "$1" ] && _img=$1     || MissingArg "${FUNCNAME[0]}:$LINENO" "_img"
-    [ "$2" ] && _kernel=$2  || MissingArg "${FUNCNAME[0]}:$LINENO" "_kernel"
-    [ "$3" ] && _res_dir=$3 || MissingArg "${FUNCNAME[0]}:$LINENO" "_res_dir"
+    [ "$1" ] && _img=$1     || MissingArg "StartRaspi2:$LINENO" "_img"
+    [ "$2" ] && _kernel=$2  || MissingArg "StartRaspi2:$LINENO" "_kernel"
+    [ "$3" ] && _res_dir=$3 || MissingArg "StartRaspi2:$LINENO" "_res_dir"
 
     CheckFileExist "$_img" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_img" "E"
+        || PrintMsg "StartRaspi2:$LINENO - Couldn't locate $_img" "E"
     CheckFileExist "$_kernel" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_kernel" "E"
+        || PrintMsg "StartRaspi2:$LINENO - Couldn't locate $_kernel" "E"
     CheckDirExist "$_res_dir" && true \
-        || PrintMsg "${FUNCNAME[0]}:$LINENO - Couldn't locate $_res_dir" "E"
+        || PrintMsg "StartRaspi2:$LINENO - Couldn't locate $_res_dir" "E"
 
     # 1. Setup Env
     SetupEnv "raspi2" "$_img" "$_res_dir"
@@ -245,7 +245,7 @@ function StartRaspi2
 #   When `_exit_val` is being provide, one can pass in `_caller` to let himself
 #   has clue where the heck is calling this Usage, to make debugging easier.
 #
-function Usage
+Usage()
 {
     local _prog=$(basename $0)
     local _exit_val
@@ -280,31 +280,31 @@ function Usage
 #   It then parsed and change the default value of variable defined in top
 #   of the script.
 #
-function CheckParams
+CheckParams()
 {
     while [ "$1" != "" ]; do
         case $1 in
         -h | --help)
-            Usage 0 "${FUNCNAME[0]}:$LINENO"
+            Usage 0 "CheckParams:$LINENO"
             ;;
         --image)
-            [ "$2" = "" ] && Usage 1 "${FUNCNAME[0]}:$LINENO" || TARGET_IMG=$2
+            [ "$2" = "" ] && Usage 1 "CheckParams:$LINENO" || TARGET_IMG=$2
             shift
             ;;
         --kernel)
-            [ "$2" = "" ] && Usage 1 "${FUNCNAME[0]}:$LINENO" || KERNEL_IMG=$2
+            [ "$2" = "" ] && Usage 1 "CheckParams:$LINENO" || KERNEL_IMG=$2
             shift
             ;;
         --log-level)
-            [ "$2" = "" ] && Usage 1 "${FUNCNAME[0]}:$LINENO" || LOG_LEVEL=$2
+            [ "$2" = "" ] && Usage 1 "CheckParams:$LINENO" || LOG_LEVEL=$2
             shift
             ;;
         --mode)
-            [ "$2" = "" ] && Usage 1 "${FUNCNAME[0]}:$LINENO" || MODE=$2
+            [ "$2" = "" ] && Usage 1 "CheckParams:$LINENO" || MODE=$2
             shift
             ;;
         --res)
-            [ "$2" = "" ] && Usage 1 "${FUNCNAME[0]}:$LINENO" || RES_DIR=$2
+            [ "$2" = "" ] && Usage 1 "CheckParams:$LINENO" || RES_DIR=$2
             shift
             ;;
         -v | --version)
@@ -314,7 +314,7 @@ function CheckParams
         *)
             TARGET_IMG=$RES_DIR/raspi2.img
             KERNEL_IMG=$RES_DIR/kernel7-$MODE.img
-            Usage 1 "${FUNCNAME[0]}:$LINENO"
+            Usage 1 "CheckParams:$LINENO"
         esac
         shift
     done

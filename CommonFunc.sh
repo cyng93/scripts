@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # Description: $ Common funcs that are likely to be used in various of places.
 #
@@ -43,7 +43,7 @@ DEFAULT_MSG_LEVEL_STR="INFO"
 #     10 - INFO
 #     15 - DEBUG
 #
-function PrintMsg
+PrintMsg()
 {
     local _msg
     local _lvl
@@ -74,7 +74,7 @@ function PrintMsg
     esac
 
     if [ "$_msg_lvl" -le "$LOG_LEVEL" ]; then
-        echo -e "[$_msg_lvl_str]\t${1}"
+        echo "[$_msg_lvl_str]\t${1}"
         if [ $EXIT_ON_ERROR -eq 1 ]; then
             [ 0 -eq $_msg_lvl ] && exit 1 || true
         fi
@@ -87,7 +87,7 @@ function PrintMsg
 #
 #   Print missing argument message, then abort the program.
 #
-function MissingArg
+MissingArg()
 {
     local _arg
     local _func
@@ -106,14 +106,14 @@ function MissingArg
 #
 #   return 1 if `_path` exist as file type `_type`, 0 otherwise
 #
-function CheckPathExist
+CheckPathExist()
 {
     local _path
     local _type
     local _ret
 
-    [ "$1" ] && _path=$1 || MissingArg "${FUNCNAME[0]}:$LINENO" "_path"
-    [ "$2" ] && _type=$2 || MissingArg "${FUNCNAME[0]}:$LINENO" "_type"
+    [ "$1" ] && _path=$1 || MissingArg "CheckPathExist:$LINENO" "_path"
+    [ "$2" ] && _type=$2 || MissingArg "CheckPathExist:$LINENO" "_type"
 
     case "$_type" in
         "FILE" )
@@ -123,7 +123,7 @@ function CheckPathExist
             [ -d "$_path" ] && _ret=1 || _ret=0
             ;;
         *)
-            PrintMsg "\`${FUNCNAME[0]}:$LINENO\` invalid type \`$_path\`" "E"
+            PrintMsg "\`CheckPathExist:$LINENO\` invalid type \`$_path\`" "E"
             ;;
     esac
 
@@ -135,12 +135,12 @@ function CheckPathExist
 # CheckFileExist ( _file )
 #   return 1 if `_file` exist, 0 otherwise
 #
-function CheckFileExist
+CheckFileExist()
 {
     local _file
     local _ret
 
-    [ "$1" ] && _file=$1 || MissingArg "${FUNCNAME[0]}:$LINENO" "_file"
+    [ "$1" ] && _file=$1 || MissingArg "CheckFileExist:$LINENO" "_file"
 
     CheckPathExist "$_file" "FILE" \
         && _ret=1 || _ret=0
@@ -153,12 +153,12 @@ function CheckFileExist
 # CheckDirExist ( _dir )
 #   return 1 if `_dir` exist, 0 otherwise
 #
-function CheckDirExist
+CheckDirExist()
 {
     local _dir
     local _ret
 
-    [ "$1" ] && _dir=$1 || MissingArg "${FUNCNAME[0]}:$LINENO" "_dir"
+    [ "$1" ] && _dir=$1 || MissingArg "CheckDirExist:$LINENO" "_dir"
 
     CheckPathExist "$_dir" "DIR" \
         && _ret=1 || _ret=0
@@ -172,7 +172,7 @@ function CheckDirExist
 #
 #   List out all func-proto in the next line to "$Func"
 #
-function ListFunc
+ListFunc()
 {
     local _prog=$(basename $0)
     echo ""
@@ -186,7 +186,7 @@ function ListFunc
 
 
 # ----------- DEDICATED FUNC
-function Usage
+Usage()
 {
     local _prog=$(basename $0)
     local url="https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh"

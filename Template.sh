@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # Description: $ This script serves as a template to start writing new script
 #
@@ -20,7 +20,7 @@
 url="https://raw.githubusercontent.com/cyng93/scripts/master/CommonFunc.sh"
 curl -s $url > /tmp/.CommonFunc.sh && true \
     || { echo "[ERROR] Fail to download CommonFunc. Aborting."; exit 1; }
-source /tmp/.CommonFunc.sh
+. /tmp/.CommonFunc.sh
 
 
 # ---------- DEFAULT_ARGS
@@ -34,7 +34,7 @@ LOG_LEVEL=10
 #   Abort program with exit value = `_exit_val` after printing usage,
 #   if `_exit_val` was provided.
 #
-function Usage
+Usage()
 {
     local _prog=$(basename $0)
 
@@ -52,7 +52,7 @@ function Usage
 
 
 # ---------- GENERAL FUNCTIONS
-function CheckParams
+CheckParams()
 {
     while [ "$1" != "" ]; do
         case $1 in
