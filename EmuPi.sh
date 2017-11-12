@@ -182,11 +182,11 @@ StartVersatilepb()
         -no-reboot \
         -append "root=/dev/sda2 panic=1 rootfstype=ext4 rw" \
         -hda $_img \
-        -net nic,vlan=0 \
-        -net tap,vlan=0,ifname=tap0,script=no,downscript=no \
+        -net nic -net user,hostfwd=tcp::2222-:22 \
         -nographic \
-        ;
-        # -net nic -net user,hostfwd=tcp::2222-:22
+        &
+        # -net nic,vlan=0 \
+        # -net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 }
 
 
